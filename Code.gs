@@ -627,7 +627,8 @@ function syncRegister_() {
 function setup() {
   var props = PropertiesService.getScriptProperties();
   Object.keys(DEFAULT_CONFIG).forEach(function (k) {
-    if (!props.getProperty(k)) props.setProperty(k, DEFAULT_CONFIG[k]);
+    var cur = props.getProperty(k);
+    if (!cur || cur.indexOf('PUT_') === 0) props.setProperty(k, DEFAULT_CONFIG[k]);
   });
   var ss = ss_();
   ensureSheet_(T_RECORDS, REC_COLS);
@@ -701,7 +702,10 @@ function ensureSheet_(name, cols) {
 function config_() {
   var props = PropertiesService.getScriptProperties();
   var out = {};
-  Object.keys(DEFAULT_CONFIG).forEach(function (k) { out[k] = props.getProperty(k) || DEFAULT_CONFIG[k]; });
+  Object.keys(DEFAULT_CONFIG).forEach(function (k) {
+    var v = props.getProperty(k);
+    out[k] = (v && v.indexOf('PUT_') !== 0) ? v : DEFAULT_CONFIG[k];   // placeholders never override
+  });
   return out;
 }
 
@@ -822,7 +826,10 @@ function pad_(n) { return (n < 10 ? '0' : '') + n; }
 function dateStr_(v) {
   if (!v) return '';
   if (v instanceof Date) {
-    return Utilities.formatDate(v, ss_().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    var tz = null;
+    try { tz = ss_().getSpreadsheetTimeZone(); } catch (e) { }
+    if (!tz || typeof tz !== 'string') tz = Session.getScriptTimeZone() || 'Asia/Dhaka';
+    return Utilities.formatDate(v, tz, 'yyyy-MM-dd');
   }
   var s = String(v).trim();
   return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : s;
