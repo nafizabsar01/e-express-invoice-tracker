@@ -1,0 +1,9 @@
+{
+  "name": "e-Express Invoice Tracker",
+  "short_name": "e-Express",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F4F6F8",
+  "theme_color": "#124A80",
+  "icons": [{ "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }]
+}

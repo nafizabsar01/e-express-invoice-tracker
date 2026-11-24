@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#124A80">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="e-Express">
+<title>e-Express Invoice Tracker · ESCM LLC</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --navy:#124A80; --navy-d:#0d3760; --navy-l:#EAF1F8; --red:#941B1E; --red2:#D21F32;
+  --gray:#F4F6F8; --line:#dde3ea; --text:#1d2733; --muted:#5f6b7a;
+  --ok:#276221; --ok-bg:#E2F0D9; --bad:#941B1E; --bad-bg:#FCE8E8; --warn:#8A5A00; --warn-bg:#FFF2CC;
+  --radius:10px; --shadow:0 1px 2px rgba(16,40,70,.06),0 2px 8px rgba(16,40,70,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--gray);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--navy)}
+.hidden{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* header */
+header.top{background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 16px 0;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto}
+.brand .logo{background:#fff;border-radius:8px;padding:5px 8px;display:flex}
+.brand .logo img{height:26px;display:block}
+.brand h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+.brand small{display:block;font-size:12px;opacity:.8;font-weight:400}
+.brand .spacer{flex:1}
+.acct{position:relative}
+.acct>button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;max-width:260px}
+.acct>button span.em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#fff;color:var(--navy);text-transform:uppercase;letter-spacing:.4px}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;color:var(--text);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.18);min-width:240px;padding:8px;z-index:30}
+.menu .who{padding:8px 10px;border-bottom:1px solid var(--line);margin-bottom:6px;font-size:13px;word-break:break-all}
+.menu button{width:100%;text-align:left;background:none;border:0;padding:9px 10px;border-radius:6px;cursor:pointer}
+.menu button:hover{background:var(--gray)}
+nav.tabs{display:flex;gap:4px;max-width:1200px;margin:10px auto 0;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{background:none;border:0;color:#fff;opacity:.8;padding:10px 14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;font-weight:600}
+nav.tabs button[aria-selected=true]{opacity:1;border-bottom-color:#fff}
+main{max-width:1200px;margin:0 auto;padding:16px 16px calc(80px + env(safe-area-inset-bottom))}
+
+/* common */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-title{background:var(--navy);color:#fff;font-weight:700;font-size:13px;letter-spacing:.6px;text-transform:uppercase;padding:9px 14px;border-radius:var(--radius) var(--radius) 0 0}
+.sec-title.red{background:var(--red)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;border:1px solid var(--line);background:#fff;padding:9px 14px;cursor:pointer;font-weight:600;min-height:40px}
+.btn:hover{background:var(--gray)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy-d)}
+.btn.danger{background:#fff;color:var(--bad);border-color:#e9b9bb}
+.btn.danger.solid{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.sm{min-height:32px;padding:5px 10px;font-size:13px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.st-Settled{color:var(--ok);background:var(--ok-bg)}
+.st-Pending{color:var(--bad);background:var(--bad-bg)}
+.st-Partially{color:var(--warn);background:var(--warn-bg)}
+.st-none{color:var(--muted);background:var(--gray)}
+.muted{color:var(--muted)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.toolbar .grow{flex:1}
+
+/* filters */
+.filters{padding:12px;margin-bottom:14px;display:grid;grid-template-columns:1.6fr repeat(5,minmax(120px,1fr)) auto;gap:10px;align-items:end}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.field input,.field select{width:100%;border:1px solid #c9d2dc;border-radius:8px;padding:8px 10px;background:#fff;min-height:40px;font-size:16px}
+.field input:focus,.field select:focus{outline:2px solid #9cc0e6;border-color:var(--navy)}
+.field .err{color:var(--bad);font-size:12px;margin-top:3px;min-height:0}
+.field.invalid input,.field.invalid select{border-color:var(--bad)}
+.filter-toggle{display:none}
+
+/* table */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px;font-weight:650;white-space:nowrap;position:sticky;top:0}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button:focus-visible{outline:2px solid #fff}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:nth-child(even) td{background:var(--gray)}
+tbody tr:hover td{background:var(--navy-l)}
+td.actions{white-space:nowrap;text-align:right}
+.pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:10px 12px;flex-wrap:wrap}
+.cards{display:none}
+.icard{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:4px 10px}
+.icard:last-child{border-bottom:0}
+.icard .b{font-weight:700}
+.icard .amt{font-weight:700;text-align:right}
+.icard .meta{font-size:13px;color:var(--muted)}
+.icard .act{grid-column:1/-1;display:flex;gap:8px;margin-top:6px}
+
+/* states */
+.state{padding:36px 16px;text-align:center;color:var(--muted)}
+.state h3{color:var(--text);margin:0 0 6px}
+.spinner{width:28px;height:28px;border:3px solid var(--navy-l);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.banner{padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:14px}
+.banner.err{background:var(--bad-bg);color:var(--bad);border:1px solid #efc4c6}
+.banner.info{background:var(--navy-l);color:var(--navy);border:1px solid #c9dbee}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:100;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
+.toast{padding:12px 14px;border-radius:10px;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.2);font-weight:600}
+.toast.ok{background:#276221}.toast.err{background:var(--bad)}.toast.info{background:var(--navy)}
+
+/* dashboard */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.kpi{overflow:hidden}
+.kpi .h{color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:8px 12px;background:var(--navy)}
+.kpi .h.r1{background:var(--red)}.kpi .h.r2{background:var(--red2)}.kpi .h.g{background:var(--ok)}
+.kpi .v{font-size:24px;font-weight:750;padding:12px;background:var(--navy-l);font-variant-numeric:tabular-nums;word-break:break-word}
+.kpi .s{font-size:12px;color:var(--muted);padding:0 12px 10px;background:var(--navy-l)}
+.curblock{margin-bottom:14px}
+.curblock .sec-title{display:flex;justify-content:space-between}
+.curgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line)}
+.curgrid>div{background:#fff;padding:12px}
+.curgrid .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.curgrid .v{font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+.curgrid .c{font-size:12px;color:var(--muted)}
+.v.okc{color:var(--ok)}.v.badc{color:var(--bad)}.v.warnc{color:var(--warn)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.chart{padding:12px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+svg text{font-family:inherit}
+
+/* modal */
+dialog{border:0;border-radius:14px;padding:0;width:min(560px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(10,25,45,.45)}
+.dlg-h{background:var(--navy);color:#fff;padding:14px 18px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.dlg-h button{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1}
+.dlg-b{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-height:70vh;overflow:auto}
+.dlg-b .full{grid-column:1/-1}
+.dlg-f{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.dlg-f .left{margin-right:auto}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:200px;overflow:auto}
+.checks label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--text);font-weight:400;margin:0}
+.checks input{width:auto;min-height:0}
+
+/* sign-in */
+#signin{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,var(--navy) 0 38%,var(--gray) 38%)}
+#signin .card{max-width:420px;width:100%;padding:28px 24px;text-align:center}
+#signin img{max-width:220px;width:70%}
+#signin h2{margin:14px 0 4px;color:var(--navy)}
+#gbtn{display:flex;justify-content:center;margin:20px 0 8px;min-height:44px}
+
+@media (max-width:900px){
+  .filters{grid-template-columns:1fr 1fr}
+  .filters .f-q{grid-column:1/-1}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  main{padding:12px 10px calc(84px + env(safe-area-inset-bottom))}
+  .brand h1{font-size:15px}
+  .brand small{display:none}
+  .acct>button span.em{display:none}
+  header.top nav.tabs{display:none}
+  nav.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:25}
+  nav.bottom button{flex:1;background:none;border:0;padding:9px 4px 8px;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+  nav.bottom button[aria-selected=true]{color:var(--navy)}
+  nav.bottom svg{width:22px;height:22px}
+  .filter-toggle{display:inline-flex}
+  .filters.collapsed .f-more{display:none}
+  .tablewrap.reg{display:none}
+  .cards{display:block}
+  .dlg-b{grid-template-columns:1fr}
+  .kpi .v{font-size:20px}
+  .toolbar .btn{flex:1}
+  .toolbar .grow{display:none}
+}
+@media (min-width:641px){ nav.bottom{display:none} }
+</style>
+</head>
+<body>
+<div id="signin" class="hidden">
+  <div class="card">
+    <img src="logo.png" alt="e-Express">
+    <h2>Invoice Tracker</h2>
+    <div class="muted">ESCM LLC · Data Entry Project</div>
+    <div id="gbtn" aria-label="Sign in with Google"></div>
+    <div id="signin-msg" class="muted" role="status" style="font-size:14px">Sign in with your approved Google account.</div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><img src="logo.png" alt="e-Express"></div>
+      <h1>e-Express Invoice Tracker<small>ESCM LLC · Data Entry Project</small></h1>
+      <div class="spacer"></div>
+      <div class="acct">
+        <button id="acctBtn" aria-haspopup="true" aria-expanded="false"><span class="em" id="acctEmail"></span><span class="role" id="acctRole"></span></button>
+        <div class="menu hidden" id="acctMenu" role="menu">
+          <div class="who"><div id="menuEmail" style="font-weight:600"></div><div class="muted" id="menuRole"></div></div>
+          <button role="menuitem" id="refreshBtn">Refresh data</button>
+          <button role="menuitem" id="signoutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" id="topTabs"></nav>
+  </header>
+
+  <main>
+    <div id="globalBanner"></div>
+    <section class="card filters collapsed" id="filters" aria-label="Filters">
+      <div class="field f-q"><label for="fQ">Search batch or invoice number</label><input id="fQ" type="search" placeholder="e.g. BATCH01 or EXL10091" autocomplete="off"></div>
+      <div class="field f-more"><label for="fFrom">Invoice date from</label><input id="fFrom" type="date"></div>
+      <div class="field f-more"><label for="fTo">Invoice date to</label><input id="fTo" type="date"></div>
+      <div class="field f-more"><label for="fCur">Currency</label><select id="fCur"><option value="">All currencies</option></select></div>
+      <div class="field f-more"><label for="fStatus">Settlement status</label><select id="fStatus"><option value="">All statuses</option><option>Pending</option><option>Partially Settled</option><option>Settled</option><option value="__none__">No status yet</option></select></div>
+      <div class="field f-more"><label for="fBatch">Batch</label><select id="fBatch"><option value="">All batches</option></select></div>
+      <div style="display:flex;gap:8px"><button class="btn filter-toggle" id="moreFilters" type="button">More filters</button><button class="btn" id="clearFilters" type="button">Clear</button></div>
+    </section>
+
+    <section id="view-dashboard" class="view"></section>
+    <section id="view-register" class="view hidden"></section>
+    <section id="view-users" class="view hidden"></section>
+    <section id="view-audit" class="view hidden"></section>
+  </main>
+  <nav class="bottom" id="bottomTabs"></nav>
+</div>
+
+<dialog id="recDlg" aria-labelledby="recTitle">
+  <form method="dialog" id="recForm" novalidate>
+    <div class="dlg-h"><span id="recTitle">Add invoice</span><button type="button" data-close aria-label="Close">×</button></div>
+    <div class="dlg-b">
+      <div id="recBanner" class="full"></div>
+      <div class="field full"><label for="r_batchNumber">Batch Number *</label><input id="r_batchNumber" name="batchNumber" list="batchList" maxlength="80" required autocomplete="off"><div class="err"></div></div>
+      <div class="field"><label for="r_dataCount">Data Count</label><input id="r_dataCount" name="dataCount" inputmode="numeric" autocomplete="off"><div class="err"></div></div>
+      <div class="field"><label for="r_invoiceNumber">Invoice Number</label><input id="r_invoiceNumber" name="invoiceNumber" maxlength="60" autocomplete="off"><div class="err"></div></div>
+      <div class="field"><label for="r_invoiceDate">Invoice Date</label><input id="r_invoiceDate" name="invoiceDate" type="date"><div class="err"></div></div>
+      <div class="field"><label for="r_currency">Currency</label><input id="r_currency" name="currency" list="curList" maxlength="3" autocapitalize="characters" autocomplete="off" placeholder="USD"><div class="err"></div></div>
+      <div class="field"><label for="r_invoiceAmount">Invoice Amount (calculated)</label><input id="r_invoiceAmount" name="invoiceAmount" readonly tabindex="-1" style="background:var(--gray)"><div class="muted" style="font-size:12px" id="rateHint"></div></div>
+      <div class="field"><label for="r_settlementStatus">Settlement Status</label><select id="r_settlementStatus" name="settlementStatus"><option value="">— Not set —</option><option>Pending</option><option>Partially Settled</option><option>Settled</option></select><div class="err"></div></div>
+      <div class="full muted" id="recMeta" style="font-size:12px"></div>
+    </div>
+    <div class="dlg-f">
+      <button type="button" class="btn danger left hidden" id="recDelete">Delete</button>
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="recSave">Save</button>
+    </div>
+  </form>
+</dialog>
+<datalist id="batchList"></datalist>
+<datalist id="curList"><option>USD</option><option>BDT</option><option>EUR</option><option>GBP</option><option>AED</option><option>SAR</option><option>INR</option><option>SGD</option><option>CAD</option><option>AUD</option></datalist>
+
+<dialog id="userDlg" aria-labelledby="userTitle">
+  <form method="dialog" id="userForm" novalidate>
+    <div class="dlg-h"><span id="userTitle">Add user</span><button type="button" data-close aria-label="Close">×</button></div>
+    <div class="dlg-b">
+      <div id="userBanner" class="full"></div>
+      <div class="field full"><label for="u_email">Google account email *</label><input id="u_email" type="email" autocomplete="off" required><div class="err"></div></div>
+      <div class="field"><label for="u_role">Role *</label><select id="u_role"><option>Viewer</option><option>Editor</option><option>Admin</option></select><div class="err"></div></div>
+      <div class="field"><label for="u_active">Status</label><select id="u_active"><option value="true">Active</option><option value="false">Disabled</option></select></div>
+      <div class="field full" id="u_batchWrap"><label>Batch access</label>
+        <div class="checks" id="u_batches"></div>
+        <div class="muted" style="font-size:12px;margin-top:4px">"All batches" includes batches added later. Admins always see everything.</div></div>
+      <div class="field full" id="u_recWrap"><label for="u_records">Extra individual records (optional)</label>
+        <div class="checks" id="u_records"></div></div>
+    </div>
+    <div class="dlg-f">
+      <button type="button" class="btn danger left hidden" id="userRemove">Remove user</button>
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="userSave">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirmDlg" aria-labelledby="cfTitle">
+  <form method="dialog">
+    <div class="dlg-h" style="background:var(--bad)"><span id="cfTitle">Confirm</span></div>
+    <div style="padding:18px" id="cfBody"></div>
+    <div class="dlg-f"><button value="no" class="btn">Cancel</button><button value="yes" class="btn danger solid" id="cfYes">Delete</button></div>
+  </form>
+</dialog>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script>
+'use strict';
+(function () {
+const CFG = window.APP_CONFIG || {};
+const $ = s => document.querySelector(s);
+const el = (tag, attrs, ...kids) => {
+  const e = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    const v = attrs[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'html') e.innerHTML = v;      // only used with trusted, static markup
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  kids.flat().forEach(k => { if (k !== null && k !== undefined && k !== false) e.append(k instanceof Node ? k : document.createTextNode(String(k))); });
+  return e;
+};
+
+const state = {
+  token: null, me: null, view: 'dashboard',
+  filters: { q: '', dateFrom: '', dateTo: '', currency: '', status: '', batch: '' },
+  sortBy: 'seq', sortDir: 'asc', page: 1, pageSize: 25,
+  list: null, dash: null, batches: [], currencies: [], usersData: null, auditPage: 1
+};
+
+// ------------------------------------------------------------ API ---
+const TOKEN_KEY = 'eex_idtoken';
+function newRid() { const a = new Uint8Array(12); crypto.getRandomValues(a); return 'r' + Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
+class ApiError extends Error { constructor(code, msg, details) { super(msg); this.code = code; this.details = details; } }
+
+async function api(action, payload, opts = {}) {
+  if (!state.token) throw new ApiError('UNAUTHENTICATED', 'Please sign in.');
+  const body = { action, idToken: state.token, payload: payload || {} };
+  if (opts.write) body.requestId = opts.requestId || newRid();
+  let res, data;
+  const attempt = async () => {
+    res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', cache: 'no-store' });
+    if (!res.ok) throw new ApiError('NETWORK', 'Server responded ' + res.status + '. Please try again.');
+    try { data = await res.json(); } catch (e) { throw new ApiError('NETWORK', 'Unexpected response from server.'); }
+  };
+  try { await attempt(); }
+  catch (e) {
+    if (e instanceof ApiError) throw e;
+    // One retry for network glitches; writes reuse the same requestId so they can't double-apply.
+    try { await new Promise(r => setTimeout(r, 800)); await attempt(); }
+    catch (e2) { throw e2 instanceof ApiError ? e2 : new ApiError('NETWORK', navigator.onLine ? 'Could not reach the server. Please try again.' : 'You appear to be offline.'); }
+  }
+  if (!data.ok) {
+    const err = new ApiError(data.error.code, data.error.message, data.error.details);
+    if (err.code === 'UNAUTHENTICATED') { signOut(true, err.message); }
+    throw err;
+  }
+  return data.data;
+}
+
+// ------------------------------------------------------- SIGN-IN ---
+function decodeJwt(t) {
+  try { return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) { return null; }
+}
+function tokenValid(t) { const p = t && decodeJwt(t); return !!(p && p.exp * 1000 > Date.now() + 60000); }
+
+function showSignin(msg) {
+  $('#app').classList.add('hidden');
+  $('#signin').classList.remove('hidden');
+  $('#signin-msg').textContent = msg || 'Sign in with your approved Google account.';
+  renderGoogleButton();
+  if (msg && /expired/i.test(msg) && gisReady) { try { google.accounts.id.prompt(); } catch (e) { } }
+}
+let gisReady = false;
+function initGis() {
+  if (!window.google || !google.accounts || !google.accounts.id) return false;
+  if (gisReady) return true;
+  google.accounts.id.initialize({ client_id: CFG.CLIENT_ID, callback: onCredential, auto_select: true, cancel_on_tap_outside: false, use_fedcm_for_prompt: true });
+  gisReady = true;
+  return true;
+}
+function renderGoogleButton() {
+  if (!initGis()) { setTimeout(renderGoogleButton, 300); return; }
+  const box = $('#gbtn'); box.innerHTML = '';
+  google.accounts.id.renderButton(box, { theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with', width: 260 });
+}
+async function onCredential(resp) {
+  state.token = resp.credential;
+  try { sessionStorage.setItem(TOKEN_KEY, state.token); } catch (e) { }
+  $('#signin-msg').textContent = 'Checking your access…';
+  try {
+    state.me = await api('me');
+    startApp();
+  } catch (e) {
+    state.token = null;
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch (e2) { }
+    showSignin(e.message);
+  }
+}
+function signOut(expired, msg) {
+  state.token = null; state.me = null;
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) { }
+  if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
+  showSignin(expired ? (msg || 'Your session expired. Please sign in again.') : 'You have signed out.');
+}
+
+// ------------------------------------------------------- UTIL ---
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(s) { if (!s) return ''; const [y, m, d] = s.split('-'); return d + ' ' + MONTHS[+m - 1] + ' ' + y; }
+function fmtMonth(s) { const [y, m] = s.split('-'); return MONTHS[+m - 1] + ' ' + y; }
+function fmtInt(n) { return n === null || n === undefined ? '' : Number(n).toLocaleString('en-US'); }
+function fmtMoney(n, cur) {
+  if (n === null || n === undefined) return '';
+  try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur || 'USD', currencyDisplay: 'code', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n).replace(/ /g, ' '); }
+  catch (e) { return (cur ? cur + ' ' : '') + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+}
+function fmtTs(s) { if (!s) return ''; const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+function statusPill(s) {
+  if (!s) return el('span', { class: 'pill st-none' }, 'Not set');
+  return el('span', { class: 'pill st-' + s.split(' ')[0] }, s);
+}
+function toast(msg, kind = 'info', ms = 3500) {
+  const t = el('div', { class: 'toast ' + kind, role: kind === 'err' ? 'alert' : 'status' }, msg);
+  $('#toasts').append(t); setTimeout(() => t.remove(), ms);
+}
+function loading(container, msg) { container.replaceChildren(el('div', { class: 'card state' }, el('div', { class: 'spinner' }), msg || 'Loading…')); }
+function errorState(container, e, retry) {
+  container.replaceChildren(el('div', { class: 'card state' }, el('h3', {}, 'Something went wrong'), el('div', {}, e.message || String(e)),
+    el('div', { style: 'margin-top:12px' }, el('button', { class: 'btn primary', onclick: retry }, 'Try again'))));
+}
+function isAdmin() { return state.me && state.me.role === 'Admin'; }
+function canEditRec() { return state.me && (state.me.role === 'Admin' || state.me.role === 'Editor'); }
+
+// ------------------------------------------------------- NAV ---
+const ICONS = {
+  dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+  register: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M1 21v-1a7 7 0 0 1 14 0v1M17 11a4 4 0 0 0 0-8M23 21v-1a7 7 0 0 0-5-6.7"/></svg>',
+  audit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>'
+};
+function tabsFor() {
+  const t = [['dashboard', 'Dashboard'], ['register', 'Invoice Register']];
+  if (isAdmin()) t.push(['users', 'Users'], ['audit', 'Audit Log']);
+  return t;
+}
+function renderTabs() {
+  const top = $('#topTabs'), bot = $('#bottomTabs');
+  top.replaceChildren(); bot.replaceChildren();
+  tabsFor().forEach(([id, label]) => {
+    top.append(el('button', { role: 'tab', 'aria-selected': String(state.view === id), onclick: () => go(id) }, label));
+    const b = el('button', { role: 'tab', 'aria-selected': String(state.view === id), onclick: () => go(id), 'aria-label': label });
+    b.innerHTML = ICONS[id]; b.append(el('span', {}, id === 'register' ? 'Invoices' : label.replace(' Log', '')));
+    bot.append(b);
+  });
+}
+function go(view) {
+  if (!tabsFor().some(t => t[0] === view)) view = 'dashboard';
+  state.view = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  $('#view-' + view).classList.remove('hidden');
+  $('#filters').classList.toggle('hidden', !(view === 'dashboard' || view === 'register'));
+  renderTabs();
+  if (location.hash !== '#' + view) history.replaceState(null, '', '#' + view);
+  window.scrollTo(0, 0);
+  refreshView();
+}
+function refreshView() {
+  if (state.view === 'dashboard') loadDashboard();
+  else if (state.view === 'register') loadList();
+  else if (state.view === 'users') loadUsers();
+  else if (state.view === 'audit') loadAudit();
+}
+
+// ------------------------------------------------------- FILTERS ---
+function readFilters() {
+  state.filters = { q: $('#fQ').value.trim(), dateFrom: $('#fFrom').value, dateTo: $('#fTo').value, currency: $('#fCur').value, status: $('#fStatus').value, batch: $('#fBatch').value };
+}
+let fTimer;
+function onFilterChange(immediate) {
+  clearTimeout(fTimer);
+  fTimer = setTimeout(() => { readFilters(); state.page = 1; refreshView(); }, immediate ? 0 : 350);
+}
+function fillSelect(sel, values, first) {
+  const cur = sel.value;
+  sel.replaceChildren(el('option', { value: '' }, first), ...values.map(v => el('option', { value: v }, v)));
+  if (values.includes(cur)) sel.value = cur;
+}
+async function loadFacets() {
+  try {
+    const b = await api('batches');
+    state.batches = b.batches;
+    fillSelect($('#fBatch'), state.batches, 'All batches');
+    $('#batchList').replaceChildren(...state.batches.map(v => el('option', { value: v })));
+  } catch (e) { /* non-fatal */ }
+}
+
+// ------------------------------------------------------- DASHBOARD ---
+const COLORS = { Settled: '#2e7d32', 'Partially Settled': '#c58a00', Pending: '#C62828' };
+const SERIES = ['#124A80', '#D21F32', '#2e7d32', '#c58a00', '#6a3fa0', '#00838f'];
+async function loadDashboard() {
+  const box = $('#view-dashboard');
+  if (!state.dash) loading(box, 'Loading dashboard…');
+  try {
+    const d = await api('dashboard', { filters: state.filters });
+    state.dash = d;
+    const curs = new Set(state.currencies); d.currencies.forEach(c => curs.add(c.currency));
+    state.currencies = [...curs].sort(); fillSelect($('#fCur'), state.currencies, 'All currencies');
+    renderDashboard(d);
+  } catch (e) { errorState(box, e, loadDashboard); }
+}
+function kpi(title, value, sub, cls) {
+  return el('div', { class: 'card kpi' }, el('div', { class: 'h ' + (cls || '') }, title), el('div', { class: 'v' }, value), sub ? el('div', { class: 's' }, sub) : null);
+}
+function renderDashboard(d) {
+  const box = $('#view-dashboard');
+  const filtered = Object.values(state.filters).some(Boolean);
+  const kids = [];
+  kids.push(el('div', { class: 'toolbar' },
+    el('div', { class: 'grow' }, el('strong', {}, 'Invoice & Settlement Overview'), ' ', el('span', { class: 'muted' }, filtered ? '· filtered view' : (isAdmin() ? '· all records' : '· records you can access'))),
+    el('button', { class: 'btn sm', onclick: () => { state.dash = null; loadDashboard(); } }, 'Refresh')));
+  if (!d.recordCount) {
+    kids.push(el('div', { class: 'card state' }, el('h3', {}, 'No records match'), filtered ? 'Try clearing the filters.' : 'There are no invoices you can access yet.'));
+    box.replaceChildren(...kids); return;
+  }
+  kids.push(el('div', { class: 'kpis' },
+    kpi('Total invoices', fmtInt(d.totalInvoices), 'Rows with an invoice number'),
+    kpi('Issued invoices', fmtInt(d.issuedInvoices), 'With invoice amount' + (d.numberedNoAmount ? ` · ${d.numberedNoAmount} missing amount` : '')),
+    kpi('Total data count', fmtInt(d.totalDataCount), `${fmtInt(d.batches.length)} batch${d.batches.length === 1 ? '' : 'es'}`, 'r1'),
+    kpi('Settled invoices', fmtInt(d.statusCounts.Settled), null, 'g'),
+    kpi('Pending invoices', fmtInt(d.statusCounts.Pending + d.statusCounts['Partially Settled']), `${d.statusCounts.Pending} pending · ${d.statusCounts['Partially Settled']} partially settled`, 'r2'),
+    kpi('Awaiting invoice', fmtInt(d.awaitingInvoice), 'Batches without invoice yet')));
+
+  if (!d.currencies.length) kids.push(el('div', { class: 'banner info' }, 'No invoice amounts in this view yet.'));
+  d.currencies.forEach(c => {
+    kids.push(el('div', { class: 'card curblock' },
+      el('div', { class: 'sec-title' }, el('span', {}, 'Amounts · ' + c.currency), el('span', { style: 'opacity:.8;font-weight:500;text-transform:none' }, `${c.issuedCount} issued invoice${c.issuedCount === 1 ? '' : 's'}`)),
+      el('div', { class: 'curgrid' },
+        el('div', {}, el('div', { class: 'l' }, 'Total invoiced'), el('div', { class: 'v' }, fmtMoney(c.invoiced, c.currency))),
+        el('div', {}, el('div', { class: 'l' }, 'Settled'), el('div', { class: 'v okc' }, fmtMoney(c.settled, c.currency)), el('div', { class: 'c' }, c.settledCount + ' invoice(s)')),
+        el('div', {}, el('div', { class: 'l' }, 'Partially settled'), el('div', { class: 'v warnc' }, fmtMoney(c.partiallySettled, c.currency)), el('div', { class: 'c' }, c.partiallySettledCount + ' invoice(s)')),
+        el('div', {}, el('div', { class: 'l' }, 'Pending'), el('div', { class: 'v badc' }, fmtMoney(c.pending, c.currency)), el('div', { class: 'c' }, c.pendingCount + ' invoice(s)')),
+        el('div', { style: 'background:var(--bad-bg)' }, el('div', { class: 'l' }, 'Outstanding'), el('div', { class: 'v badc' }, fmtMoney(c.outstanding, c.currency)), el('div', { class: 'c' }, 'Pending + Partially settled')),
+        c.noStatus ? el('div', {}, el('div', { class: 'l' }, 'No status set'), el('div', { class: 'v' }, fmtMoney(c.noStatus, c.currency))) : null,
+        c.notInvoiced ? el('div', {}, el('div', { class: 'l' }, 'Not yet invoiced'), el('div', { class: 'v' }, fmtMoney(c.notInvoiced, c.currency)), el('div', { class: 'c' }, 'Data counted, no invoice number')) : null)));
+  });
+
+  // Settlement breakdown (as in the sheet) + charts
+  const sb = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Status'), el('th', { class: 'num' }, 'Invoice count'), ...d.currencies.map(c => el('th', { class: 'num' }, 'Amount (' + c.currency + ')')))),
+    el('tbody', {}, ...['Pending', 'Partially Settled', 'Settled'].map(s => el('tr', {}, el('td', {}, statusPill(s)), el('td', { class: 'num' }, fmtInt(d.statusCounts[s])),
+      ...d.currencies.map(c => el('td', { class: 'num' }, fmtMoney(s === 'Pending' ? c.pending : s === 'Settled' ? c.settled : c.partiallySettled, c.currency)))))));
+  kids.push(el('div', { class: 'grid2' },
+    el('div', { class: 'card' }, el('div', { class: 'sec-title' }, 'Settlement breakdown'), el('div', { class: 'tablewrap' }, sb)),
+    el('div', { class: 'card' }, el('div', { class: 'sec-title' }, 'Invoices by settlement status'), el('div', { class: 'chart' }, donut(d.statusCounts)))));
+
+  kids.push(el('div', { class: 'card', style: 'margin-bottom:14px' }, el('div', { class: 'sec-title' }, 'Monthly invoiced amount'), el('div', { class: 'chart' }, monthlyChart(d))));
+
+  const bt = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Batch'), el('th', { class: 'num' }, 'Data count'), el('th', { class: 'num' }, 'Invoices'),
+    el('th', { class: 'num' }, 'Invoiced'), el('th', { class: 'num' }, 'Settled'), el('th', { class: 'num' }, 'Outstanding'), el('th', {}, 'Status'))),
+    el('tbody', {}, ...d.batches.map(b => {
+      const curs = Object.keys(b.amounts).sort();
+      const money = k => curs.length ? curs.map(c => fmtMoney(b.amounts[c][k], c)).join(' / ') : '—';
+      const st = !b.issued ? statusPill('') : b.pendingCount ? el('span', { class: 'pill st-Pending' }, b.pendingCount + ' pending') : b.partiallySettledCount ? el('span', { class: 'pill st-Partially' }, b.partiallySettledCount + ' partial') : statusPill('Settled');
+      return el('tr', {}, el('td', {}, b.batchNumber), el('td', { class: 'num' }, fmtInt(b.dataCount)), el('td', { class: 'num' }, fmtInt(b.issued)),
+        el('td', { class: 'num' }, money('invoiced')), el('td', { class: 'num' }, money('settled')), el('td', { class: 'num' }, money('outstanding')), el('td', {}, st));
+    })));
+  kids.push(el('div', { class: 'card' }, el('div', { class: 'sec-title red' }, 'Batch-wise invoice & settlement summary'), el('div', { class: 'tablewrap' }, bt)));
+  box.replaceChildren(...kids);
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs, ...kids) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); kids.forEach(k => e.append(k instanceof Node ? k : document.createTextNode(k))); return e; }
+function donut(counts) {
+  const keys = ['Pending', 'Partially Settled', 'Settled'];
+  const total = keys.reduce((a, k) => a + counts[k], 0);
+  const wrap = el('div', { style: 'display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center' });
+  const svg = S('svg', { viewBox: '0 0 120 120', width: 170, height: 170, role: 'img', 'aria-label': 'Invoices by settlement status: ' + keys.map(k => k + ' ' + counts[k]).join(', ') });
+  const r = 46, C = 2 * Math.PI * r; let off = 0;
+  svg.append(S('circle', { cx: 60, cy: 60, r, fill: 'none', stroke: '#eef1f4', 'stroke-width': 18 }));
+  if (total) keys.forEach(k => {
+    const len = counts[k] / total * C; if (!len) return;
+    const c = S('circle', { cx: 60, cy: 60, r, fill: 'none', stroke: COLORS[k], 'stroke-width': 18, 'stroke-dasharray': `${len} ${C - len}`, 'stroke-dashoffset': -off, transform: 'rotate(-90 60 60)' });
+    c.append(S('title', {}, `${k}: ${counts[k]}`)); svg.append(c); off += len;
+  });
+  svg.append(S('text', { x: 60, y: 58, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 700, fill: '#1d2733' }, String(total)));
+  svg.append(S('text', { x: 60, y: 74, 'text-anchor': 'middle', 'font-size': 9, fill: '#5f6b7a' }, 'invoices'));
+  wrap.append(svg, el('div', { class: 'legend', style: 'flex-direction:column' }, ...keys.map(k => el('div', {}, el('i', { style: 'background:' + COLORS[k] }), `${k}: ${counts[k]}` + (total ? ` (${Math.round(counts[k] / total * 100)}%)` : '')))));
+  return wrap;
+}
+function monthlyChart(d) {
+  if (!d.monthly.length) return el('div', { class: 'state' }, 'No dated invoices in this view.');
+  // One chart per currency so different currencies are never summed or share an axis.
+  const curs = d.currencies.map(c => c.currency);
+  const out = el('div', {});
+  curs.forEach((cur, ci) => {
+    const pts = d.monthly.map(m => ({ m: m.month, v: m.amounts[cur] || 0 }));
+    if (!pts.some(p => p.v)) return;
+    const W = 640, H = 220, L = 70, B = 30, T = 12, Rp = 10;
+    const max = Math.max(...pts.map(p => p.v)) || 1;
+    const nice = niceMax(max);
+    const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', role: 'img', 'aria-label': `Monthly invoiced amount in ${cur}` });
+    for (let i = 0; i <= 4; i++) {
+      const y = T + (H - T - B) * (1 - i / 4);
+      svg.append(S('line', { x1: L, x2: W - Rp, y1: y, y2: y, stroke: '#e6ebf0' }));
+      svg.append(S('text', { x: L - 6, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#5f6b7a' }, compact(nice * i / 4)));
+    }
+    const bw = Math.min(56, (W - L - Rp) / pts.length * 0.6);
+    pts.forEach((p, i) => {
+      const cx = L + (W - L - Rp) * (i + 0.5) / pts.length;
+      const h = (H - T - B) * p.v / nice;
+      const rect = S('rect', { x: cx - bw / 2, y: H - B - h, width: bw, height: Math.max(h, p.v ? 1 : 0), rx: 3, fill: SERIES[ci % SERIES.length] });
+      rect.append(S('title', {}, `${fmtMonth(p.m)}: ${fmtMoney(p.v, cur)}`));
+      svg.append(rect);
+      svg.append(S('text', { x: cx, y: H - B + 16, 'text-anchor': 'middle', 'font-size': 11, fill: '#5f6b7a' }, fmtMonth(p.m)));
+      if (p.v) svg.append(S('text', { x: cx, y: H - B - h - 4, 'text-anchor': 'middle', 'font-size': 10, fill: '#1d2733' }, compact(p.v)));
+    });
+    out.append(el('div', { style: 'font-weight:700;margin:4px 0' }, cur), svg);
+  });
+  return out;
+}
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
+function compact(v) { return Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(v); }
+
+// ------------------------------------------------------- REGISTER ---
+const COLS = [['batchNumber', 'Batch Number'], ['dataCount', 'Data Count', 'num'], ['invoiceNumber', 'Invoice Number'], ['invoiceDate', 'Invoice Date'],
+  ['currency', 'Currency'], ['invoiceAmount', 'Invoice Amount', 'num'], ['settlementStatus', 'Settlement Status']];
+async function loadList() {
+  const box = $('#view-register');
+  if (!state.list) loading(box, 'Loading invoices…');
+  try {
+    state.list = await api('list', { filters: state.filters, sortBy: state.sortBy, sortDir: state.sortDir, page: state.page, pageSize: state.pageSize });
+    state.page = state.list.page;
+    renderList();
+  } catch (e) { errorState(box, e, loadList); }
+}
+function renderList() {
+  const L = state.list, box = $('#view-register');
+  const canEdit = canEditRec();
+  const bar = el('div', { class: 'toolbar' },
+    el('div', { class: 'grow' }, el('strong', {}, 'Invoice Register'), ' ', el('span', { class: 'muted' }, `· ${L.total} record${L.total === 1 ? '' : 's'}`)),
+    el('button', { class: 'btn', onclick: exportCsv, id: 'exportBtn' }, 'Export CSV'),
+    L.canCreate ? el('button', { class: 'btn primary', onclick: () => openRecord(null) }, '+ Add invoice') : null);
+  if (!L.total) {
+    box.replaceChildren(bar, el('div', { class: 'card state' }, el('h3', {}, 'No invoices found'),
+      Object.values(state.filters).some(Boolean) ? el('div', {}, 'No records match your filters. ', el('button', { class: 'btn sm', onclick: clearFilters }, 'Clear filters')) : 'There are no records you can access yet.'));
+    return;
+  }
+  const head = el('tr', {}, ...COLS.map(([k, label, cls]) => {
+    const active = state.sortBy === k;
+    const arrow = active ? (state.sortDir === 'asc' ? '▲' : '▼') : '↕';
+    return el('th', { class: cls || '', 'aria-sort': active ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none' },
+      el('button', { onclick: () => sortBy(k) }, label, el('span', { style: 'opacity:' + (active ? 1 : .45) }, arrow)));
+  }), el('th', {}, el('span', { class: 'sr' }, 'Actions')));
+  const rows = L.items.map(r => el('tr', {},
+    el('td', {}, r.batchNumber), el('td', { class: 'num' }, fmtInt(r.dataCount)), el('td', {}, r.invoiceNumber || el('span', { class: 'muted' }, '—')),
+    el('td', {}, fmtDate(r.invoiceDate) || el('span', { class: 'muted' }, '—')), el('td', {}, r.currency),
+    el('td', { class: 'num' }, r.invoiceAmount === null ? el('span', { class: 'muted' }, '—') : fmtMoney(r.invoiceAmount, r.currency).replace(r.currency + ' ', '')),
+    el('td', {}, statusPill(r.settlementStatus)),
+    el('td', { class: 'actions' }, el('button', { class: 'btn sm', onclick: () => openRecord(r) }, canEdit ? 'Edit' : 'View'))));
+  const table = el('div', { class: 'card tablewrap reg' }, el('table', {}, el('thead', {}, head), el('tbody', {}, ...rows)));
+  const cards = el('div', { class: 'card cards' }, ...L.items.map(r => el('div', { class: 'icard' },
+    el('div', { class: 'b' }, r.batchNumber), el('div', { class: 'amt' }, r.invoiceAmount === null ? el('span', { class: 'muted' }, 'No amount') : fmtMoney(r.invoiceAmount, r.currency)),
+    el('div', { class: 'meta' }, (r.invoiceNumber || 'No invoice no.') + ' · ' + (fmtDate(r.invoiceDate) || 'No date')), el('div', { style: 'text-align:right' }, statusPill(r.settlementStatus)),
+    el('div', { class: 'meta' }, 'Data count: ' + (r.dataCount === null ? '—' : fmtInt(r.dataCount))),
+    el('div', { class: 'act' }, el('button', { class: 'btn sm', onclick: () => openRecord(r) }, canEdit ? 'Edit' : 'View details')))));
+  const sizeSel = el('select', { 'aria-label': 'Rows per page', onchange: e => { state.pageSize = +e.target.value; state.page = 1; loadList(); } }, ...[10, 25, 50, 100].map(n => el('option', { value: n, selected: n === state.pageSize }, n + ' / page')));
+  const pager = el('div', { class: 'pager' }, sizeSel,
+    el('button', { class: 'btn sm', disabled: L.page <= 1, onclick: () => { state.page--; loadList(); } }, '‹ Prev'),
+    el('span', { class: 'muted' }, `Page ${L.page} of ${L.pages}`),
+    el('button', { class: 'btn sm', disabled: L.page >= L.pages, onclick: () => { state.page++; loadList(); } }, 'Next ›'));
+  box.replaceChildren(bar, table, cards, el('div', { class: 'card', style: 'margin-top:10px' }, pager));
+}
+function sortBy(k) {
+  if (state.sortBy === k) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+  else { state.sortBy = k; state.sortDir = 'asc'; }
+  state.page = 1; loadList();
+}
+async function exportCsv() {
+  const b = $('#exportBtn'); b.disabled = true; b.textContent = 'Exporting…';
+  try {
+    const r = await api('export', { filters: state.filters, sortBy: state.sortBy, sortDir: state.sortDir });
+    const url = URL.createObjectURL(new Blob([r.csv], { type: 'text/csv;charset=utf-8' }));
+    const a = el('a', { href: url, download: r.filename }); document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast(`Exported ${r.count} record(s).`, 'ok');
+  } catch (e) { toast(e.message, 'err', 6000); }
+  finally { b.disabled = false; b.textContent = 'Export CSV'; }
+}
+
+// ------------------------------------------------------- RECORD FORM ---
+let editing = null, savingRid = null;
+const RF = ['batchNumber', 'dataCount', 'invoiceNumber', 'invoiceDate', 'currency', 'invoiceAmount', 'settlementStatus'];
+function openRecord(r) {
+  editing = r;
+  savingRid = newRid();      // one id per form session → double taps can't create twice
+  const ro = !canEditRec();
+  $('#recTitle').textContent = !r ? 'Add invoice' : ro ? 'Invoice details' : 'Edit invoice';
+  $('#recBanner').replaceChildren();
+  RF.forEach(k => {
+    const inp = $('#r_' + k);
+    let v = r ? r[k] : '';
+    if (k === 'currency' && !r) v = 'USD';
+    if (v === null || v === undefined) v = '';
+    if (k === 'invoiceAmount') { updateAmountPreview(r ? r.dataCount : ''); return; }
+    inp.value = v; inp.disabled = ro;
+    inp.closest('.field').classList.remove('invalid'); const er = inp.closest('.field').querySelector('.err'); if (er) er.textContent = '';
+  });
+  $('#recMeta').textContent = r ? `ID ${r.id} · created ${fmtTs(r.createdAt)} by ${r.createdBy} · last updated ${fmtTs(r.updatedAt)} by ${r.updatedBy}` : '';
+  $('#recSave').classList.toggle('hidden', ro);
+  $('#recSave').disabled = false; $('#recSave').textContent = 'Save';
+  $('#recDelete').classList.toggle('hidden', !(r && isAdmin()));
+  $('#recDlg').showModal();
+}
+function updateAmountPreview(raw) {
+  const rate = state.me && state.me.rate;
+  const n = Number(String(raw === null || raw === undefined ? '' : raw).replace(/,/g, ''));
+  const has = String(raw === null || raw === undefined ? '' : raw).trim() !== '' && isFinite(n) && rate;
+  $('#r_invoiceAmount').value = has ? (Math.round(Number((n * rate * 100).toFixed(6))) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+  $('#rateHint').textContent = rate ? `Data Count × ${rate}, as in the sheet` : '';
+}
+$('#r_dataCount').addEventListener('input', e => updateAmountPreview(e.target.value));
+function clientValidate(rec) {
+  const e = {};
+  if (!rec.batchNumber.trim()) e.batchNumber = 'Batch Number is required.';
+  if (rec.dataCount !== '' && !/^\d{1,3}(,?\d{3})*$|^\d+$/.test(rec.dataCount.trim())) e.dataCount = 'Whole number, e.g. 175000.';
+  if (rec.currency && !/^[A-Za-z]{3}$/.test(rec.currency.trim())) e.currency = '3-letter code, e.g. USD.';
+  return e;
+}
+function showFieldErrors(prefix, errs) {
+  Object.entries(errs).forEach(([k, m]) => {
+    const inp = $('#' + prefix + k); if (!inp) return;
+    inp.closest('.field').classList.add('invalid'); inp.closest('.field').querySelector('.err').textContent = m;
+  });
+  const first = Object.keys(errs)[0]; if (first && $('#' + prefix + first)) $('#' + prefix + first).focus();
+}
+$('#recForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const btn = $('#recSave'); if (btn.disabled) return;
+  const rec = {}; RF.forEach(k => { if (k !== 'invoiceAmount') rec[k] = $('#r_' + k).value; });
+  RF.forEach(k => { const f = $('#r_' + k).closest('.field'); f.classList.remove('invalid'); const er = f.querySelector('.err'); if (er) er.textContent = ''; });
+  $('#recBanner').replaceChildren();
+  const ce = clientValidate(rec);
+  if (Object.keys(ce).length) { showFieldErrors('r_', ce); return; }
+  rec.currency = rec.currency.trim().toUpperCase();
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (editing) await api('update', { id: editing.id, version: editing.version, record: rec }, { write: true, requestId: savingRid });
+    else await api('create', { record: rec }, { write: true, requestId: savingRid });
+    $('#recDlg').close();
+    toast(editing ? 'Invoice updated.' : 'Invoice added.', 'ok');
+    await afterChange();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Save';
+    if (e.code === 'VALIDATION' && e.details && e.details.fields) showFieldErrors('r_', e.details.fields);
+    const banner = el('div', { class: 'banner err', role: 'alert' }, e.message);
+    if (e.code === 'CONFLICT') banner.append(' ', el('button', { type: 'button', class: 'btn sm', onclick: () => { $('#recDlg').close(); afterChange(); } }, 'Reload latest'));
+    $('#recBanner').replaceChildren(banner);
+    if (e.code !== 'VALIDATION') savingRid = newRid();   // failed write can be retried safely
+  }
+});
+$('#recDelete').addEventListener('click', async () => {
+  const r = editing; if (!r) return;
+  const yes = await confirmBox('Delete invoice?', `This removes ${r.invoiceNumber || 'the record'} (${r.batchNumber}) from the register and dashboard. The change is recorded in the audit log.`, 'Delete');
+  if (!yes) return;
+  try {
+    await api('delete', { id: r.id, version: r.version }, { write: true });
+    $('#recDlg').close(); toast('Invoice deleted.', 'ok'); await afterChange();
+  } catch (e) { $('#recBanner').replaceChildren(el('div', { class: 'banner err', role: 'alert' }, e.message)); }
+});
+async function afterChange() {
+  state.dash = null; await loadFacets();
+  if (state.view === 'register') await loadList(); else refreshView();
+}
+function confirmBox(title, body, yesLabel) {
+  return new Promise(resolve => {
+    const d = $('#confirmDlg');
+    $('#cfTitle').textContent = title; $('#cfBody').textContent = body; $('#cfYes').textContent = yesLabel || 'Confirm';
+    d.returnValue = 'no';
+    d.addEventListener('close', () => resolve(d.returnValue === 'yes'), { once: true });
+    d.showModal();
+  });
+}
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+// ------------------------------------------------------- USERS ---
+async function loadUsers() {
+  const box = $('#view-users');
+  loading(box, 'Loading users…');
+  try { state.usersData = await api('users.list'); renderUsers(); } catch (e) { errorState(box, e, loadUsers); }
+}
+function renderUsers() {
+  const U = state.usersData, box = $('#view-users');
+  const rows = U.users.map(u => {
+    const self = u.email === state.me.email;
+    return el('tr', {}, el('td', {}, u.email, self ? el('span', { class: 'muted' }, ' (you)') : null), el('td', {}, el('span', { class: 'pill', style: 'background:var(--navy-l);color:var(--navy)' }, u.role)),
+      el('td', {}, u.role === 'Admin' ? 'All' : (u.batches.includes('*') ? 'All batches' : (u.batches.join(', ') || '—')) + (u.records.length ? ` + ${u.records.length} record(s)` : '')),
+      el('td', {}, u.active ? el('span', { class: 'pill st-Settled' }, 'Active') : el('span', { class: 'pill st-none' }, 'Disabled')),
+      el('td', { class: 'actions' }, self ? el('span', { class: 'muted', style: 'font-size:13px' }, 'Managed by another Admin') : el('button', { class: 'btn sm', onclick: () => openUser(u) }, 'Edit')));
+  });
+  box.replaceChildren(
+    el('div', { class: 'toolbar' }, el('div', { class: 'grow' }, el('strong', {}, 'Approved users'), ' ', el('span', { class: 'muted' }, `· ${U.users.length}`)),
+      el('button', { class: 'btn primary', onclick: () => openUser(null) }, '+ Add user')),
+    el('div', { class: 'banner info' }, 'Only the Google accounts listed here can sign in. Users sign in with their own Google account; no passwords are shared.'),
+    el('div', { class: 'card tablewrap' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Email'), el('th', {}, 'Role'), el('th', {}, 'Access'), el('th', {}, 'Status'), el('th', {}, ''))), el('tbody', {}, ...rows))));
+}
+let editingUser = null, userRid = null;
+async function openUser(u) {
+  editingUser = u; userRid = newRid();
+  $('#userTitle').textContent = u ? 'Edit user' : 'Add user';
+  $('#userBanner').replaceChildren();
+  $('#u_email').value = u ? u.email : ''; $('#u_email').disabled = !!u;
+  $('#u_role').value = u ? u.role : 'Viewer';
+  $('#u_active').value = String(u ? u.active : true);
+  const all = u ? u.batches.includes('*') : false;
+  const box = $('#u_batches');
+  box.replaceChildren(el('label', {}, el('input', { type: 'checkbox', value: '*', checked: all, onchange: e => box.querySelectorAll('input:not([value="*"])').forEach(i => { i.disabled = e.target.checked; }) }), el('strong', {}, 'All batches')),
+    ...state.usersData.batches.map(b => el('label', {}, el('input', { type: 'checkbox', value: b, checked: !!(u && u.batches.includes(b)), disabled: all }), b)));
+  const rb = $('#u_records');
+  rb.replaceChildren(el('div', { class: 'muted' }, 'Loading records…'));
+  try {
+    const recs = await api('list', { pageSize: 100, sortBy: 'seq' });
+    rb.replaceChildren(...recs.items.map(r => el('label', {}, el('input', { type: 'checkbox', value: r.id, checked: !!(u && u.records.includes(r.id)) }), `${r.batchNumber}${r.invoiceNumber ? ' · ' + r.invoiceNumber : ''}`)));
+    if (recs.total > 100) rb.append(el('div', { class: 'muted' }, 'Showing first 100 records.'));
+  } catch (e) { rb.replaceChildren(el('div', { class: 'muted' }, e.message)); }
+  const toggle = () => { const adm = $('#u_role').value === 'Admin'; $('#u_batchWrap').classList.toggle('hidden', adm); $('#u_recWrap').classList.toggle('hidden', adm); };
+  $('#u_role').onchange = toggle; toggle();
+  $('#userRemove').classList.toggle('hidden', !u);
+  $('#userSave').disabled = false;
+  $('#userDlg').showModal();
+}
+$('#userForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const btn = $('#userSave'); if (btn.disabled) return;
+  const email = $('#u_email').value.trim().toLowerCase();
+  const f = $('#u_email').closest('.field'); f.classList.remove('invalid'); f.querySelector('.err').textContent = '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showFieldErrors('u_', { email: 'Enter a valid Google account email.' }); return; }
+  const role = $('#u_role').value;
+  const batches = role === 'Admin' ? ['*'] : [...$('#u_batches').querySelectorAll('input:checked:not(:disabled)')].map(i => i.value);
+  const records = role === 'Admin' ? [] : [...$('#u_records').querySelectorAll('input:checked')].map(i => i.value);
+  btn.disabled = true;
+  try {
+    state.usersData = await api('users.save', { user: { email, role, batches, records, active: $('#u_active').value === 'true' } }, { write: true, requestId: userRid });
+    $('#userDlg').close(); toast('User saved.', 'ok'); renderUsers();
+  } catch (e) {
+    btn.disabled = false; userRid = newRid();
+    if (e.details && e.details.fields) showFieldErrors('u_', e.details.fields);
+    $('#userBanner').replaceChildren(el('div', { class: 'banner err', role: 'alert' }, e.message));
+  }
+});
+$('#userRemove').addEventListener('click', async () => {
+  const u = editingUser; if (!u) return;
+  if (!await confirmBox('Remove user?', `${u.email} will no longer be able to sign in. You can add them again later.`, 'Remove')) return;
+  try {
+    state.usersData = await api('users.remove', { email: u.email }, { write: true });
+    $('#userDlg').close(); toast('User removed.', 'ok'); renderUsers();
+  } catch (e) { $('#userBanner').replaceChildren(el('div', { class: 'banner err', role: 'alert' }, e.message)); }
+});
+
+// ------------------------------------------------------- AUDIT ---
+const FIELD_LABELS = { batchNumber: 'Batch', dataCount: 'Data count', invoiceNumber: 'Invoice no.', invoiceDate: 'Date', currency: 'Currency', invoiceAmount: 'Amount', settlementStatus: 'Status' };
+async function loadAudit() {
+  const box = $('#view-audit');
+  loading(box, 'Loading audit log…');
+  try {
+    const A = await api('audit.list', { page: state.auditPage, pageSize: 50 });
+    const show = v => (v === null || v === undefined || v === '') ? '∅' : String(v);
+    const desc = a => {
+      const c = a.changes;
+      if (!c || typeof c !== 'object') return String(c || '');
+      if (a.action.startsWith('user.')) return [c.before ? `was ${c.before.role}${c.before.batches ? ' [' + c.before.batches + ']' : ''}` : null, c.after ? `now ${c.after.role}${c.after.batches ? ' [' + c.after.batches + ']' : ''}${c.after.active === false ? ' (disabled)' : ''}` : null].filter(Boolean).join(' → ');
+      if (c.source) return c.source;
+      return Object.entries(c).map(([k, v]) => Array.isArray(v) ? `${FIELD_LABELS[k] || k}: ${show(v[0])} → ${show(v[1])}` : `${k}: ${JSON.stringify(v)}`).join('; ');
+    };
+    const rows = A.items.map(a => el('tr', {}, el('td', { style: 'white-space:nowrap' }, fmtTs(a.timestamp)), el('td', {}, a.actor), el('td', {}, a.action), el('td', { style: 'font-size:12px' }, a.recordId), el('td', { style: 'font-size:13px' }, desc(a))));
+    box.replaceChildren(
+      el('div', { class: 'toolbar' }, el('div', { class: 'grow' }, el('strong', {}, 'Audit log'), ' ', el('span', { class: 'muted' }, `· ${A.total} entries, newest first`))),
+      A.total ? el('div', { class: 'card tablewrap' }, el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'When'), el('th', {}, 'Who'), el('th', {}, 'Action'), el('th', {}, 'Record / user'), el('th', {}, 'What changed'))), el('tbody', {}, ...rows)))
+        : el('div', { class: 'card state' }, 'No audit entries yet.'),
+      el('div', { class: 'pager' }, el('button', { class: 'btn sm', disabled: A.page <= 1, onclick: () => { state.auditPage--; loadAudit(); } }, '‹ Newer'),
+        el('span', { class: 'muted' }, `Page ${A.page} of ${A.pages}`),
+        el('button', { class: 'btn sm', disabled: A.page >= A.pages, onclick: () => { state.auditPage++; loadAudit(); } }, 'Older ›')));
+  } catch (e) { errorState(box, e, loadAudit); }
+}
+
+// ------------------------------------------------------- BOOT ---
+function clearFilters() {
+  ['#fQ', '#fFrom', '#fTo', '#fCur', '#fStatus', '#fBatch'].forEach(s => { $(s).value = ''; });
+  onFilterChange(true);
+}
+function startApp() {
+  $('#signin').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#acctEmail').textContent = state.me.email; $('#acctRole').textContent = state.me.role;
+  $('#menuEmail').textContent = state.me.email; $('#menuRole').textContent = 'Role: ' + state.me.role;
+  state.dash = null; state.list = null;
+  loadFacets();
+  go((location.hash || '#dashboard').slice(1));
+}
+$('#fQ').addEventListener('input', () => onFilterChange(false));
+['#fFrom', '#fTo', '#fCur', '#fStatus', '#fBatch'].forEach(s => $(s).addEventListener('change', () => onFilterChange(true)));
+$('#clearFilters').addEventListener('click', clearFilters);
+$('#moreFilters').addEventListener('click', () => { const f = $('#filters'); f.classList.toggle('collapsed'); $('#moreFilters').textContent = f.classList.contains('collapsed') ? 'More filters' : 'Fewer filters'; });
+$('#acctBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#acctMenu'); m.classList.toggle('hidden'); $('#acctBtn').setAttribute('aria-expanded', String(!m.classList.contains('hidden'))); });
+document.addEventListener('click', () => $('#acctMenu').classList.add('hidden'));
+$('#signoutBtn').addEventListener('click', () => signOut(false));
+$('#refreshBtn').addEventListener('click', () => { state.dash = null; state.list = null; loadFacets(); refreshView(); });
+window.addEventListener('online', () => $('#globalBanner').replaceChildren());
+window.addEventListener('offline', () => $('#globalBanner').replaceChildren(el('div', { class: 'banner err' }, 'You are offline. Changes cannot be saved until you reconnect.')));
+
+(async function boot() {
+  if (!CFG.API_URL || /PUT_/.test(CFG.API_URL) || !CFG.CLIENT_ID || /PUT_/.test(CFG.CLIENT_ID)) {
+    document.body.replaceChildren(el('div', { class: 'state' }, el('h3', {}, 'App not configured'), 'Set API_URL and CLIENT_ID in config.js.'));
+    return;
+  }
+  let saved = null; try { saved = sessionStorage.getItem(TOKEN_KEY); } catch (e) { }
+  if (tokenValid(saved)) {
+    state.token = saved;
+    $('#signin').classList.remove('hidden'); $('#signin-msg').textContent = 'Checking your access…';
+    try { state.me = await api('me'); startApp(); return; } catch (e) { /* fall through to sign-in */ }
+  }
+  showSignin();
+})();
+})();
+</script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+</body>
+</html>
